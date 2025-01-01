@@ -1,4 +1,4 @@
-package main
+package texas
 
 // Define Suit and Rank as integers
 type Suit int

@@ -1,4 +1,4 @@
-package main
+package texas
 
 type HandVal int
 

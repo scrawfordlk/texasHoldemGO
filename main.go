@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	. "texasHoldEmGO/texas"
+)
 
 func main() {
 	// Define various test hands to evaluate

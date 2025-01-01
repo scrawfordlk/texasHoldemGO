@@ -1,4 +1,4 @@
-package main
+package texas
 
 // EvaluateFullHand evaluates the hand and returns the hand type as HandVal
 func EvaluateFullHand(hand Hand) HandVal {
