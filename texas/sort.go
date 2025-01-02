@@ -44,53 +44,51 @@ func SortHands(hands []Hand) {
 	sort.Sort(HandList(hands))
 }
 
-// Example usage of the above code
-func main() {
-	// Sample hands (for demonstration purposes)
-	hand1 := Hand{
-		Cards: [5]Card{
-			{Suit: Hearts, Rank: Ten},
-			{Suit: Hearts, Rank: Jack},
-			{Suit: Hearts, Rank: Queen},
-			{Suit: Hearts, Rank: King},
-			{Suit: Hearts, Rank: Ace},
-		},
-		HandVal:     RoyalFlush,
-		TieBreakers: []int{Ace, King, Queen, Jack, Ten},
+func (s Suit) String() string {
+	switch s {
+	case Hearts:
+		return "Hearts"
+	case Diamonds:
+		return "Diamonds"
+	case Clubs:
+		return "Clubs"
+	case Spades:
+		return "Spades"
+	default:
+		return "Unknown"
 	}
+}
 
-	hand2 := Hand{
-		Cards: [5]Card{
-			{Suit: Spades, Rank: Ten},
-			{Suit: Spades, Rank: Jack},
-			{Suit: Spades, Rank: Queen},
-			{Suit: Spades, Rank: King},
-			{Suit: Spades, Rank: Ace},
-		},
-		HandVal:     RoyalFlush,
-		TieBreakers: []int{Ace, King, Queen, Jack, Ten},
-	}
-
-	hand3 := Hand{
-		Cards: [5]Card{
-			{Suit: Hearts, Rank: Ace},
-			{Suit: Hearts, Rank: King},
-			{Suit: Hearts, Rank: Queen},
-			{Suit: Hearts, Rank: Jack},
-			{Suit: Hearts, Rank: Ten},
-		},
-		HandVal:     RoyalFlush,
-		TieBreakers: []int{Ace, King, Queen, Jack, Ten},
-	}
-
-	hands := []Hand{hand1, hand2, hand3}
-
-	// Sort hands
-	SortHands(hands)
-
-	// Print sorted hands
-	for _, hand := range hands {
-		fmt.Println(hand)
+func (r Rank) String() string {
+	switch r {
+	case Two:
+		return "Two"
+	case Three:
+		return "Three"
+	case Four:
+		return "Four"
+	case Five:
+		return "Five"
+	case Six:
+		return "Six"
+	case Seven:
+		return "Seven"
+	case Eight:
+		return "Eight"
+	case Nine:
+		return "Nine"
+	case Ten:
+		return "Ten"
+	case Jack:
+		return "Jack"
+	case Queen:
+		return "Queen"
+	case King:
+		return "King"
+	case Ace:
+		return "Ace"
+	default:
+		return "Unknown"
 	}
 }
 
