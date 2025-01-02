@@ -1,11 +1,9 @@
 package texas
 
-import "fmt"
-
 // EvaluateFullHand evaluates the hand and returns the hand type as HandVal
 func EvaluateFullHand(hand *Hand) HandVal {
 	evaluationMatrix := EvaluateHand(hand)
-	hand.SortCards()
+	hand.SortCards() // needed for Tiebreaker calc
 
 	if IsFlush(hand, evaluationMatrix) && IsStraight(hand, evaluationMatrix) {
 		// If the hand is a straight flush, check for royal flush (Ace-high straight flush)
@@ -32,17 +30,11 @@ func EvaluateFullHand(hand *Hand) HandVal {
 	} else if IsOnePair(hand, evaluationMatrix) {
 		return OnePair
 	} else {
-		print("HIGH CARD\n")
-		hand.HandVal = HighCard
-
 		hand.TieBreakers[0] = hand.Cards[4].Rank
-		print(fmt.Sprintf("%v at nr. 1\n", hand.Cards[4].Rank))
 		hand.TieBreakers[1] = hand.Cards[3].Rank
-		print(fmt.Sprintf("%v at nr. 2\n", hand.Cards[3].Rank))
 		hand.TieBreakers[2] = hand.Cards[2].Rank
 		hand.TieBreakers[3] = hand.Cards[1].Rank
 		hand.TieBreakers[4] = hand.Cards[0].Rank
-		print(fmt.Printf("%v is the second\n", hand.TieBreakers[1]))
 		return HighCard
 	}
 }
@@ -93,28 +85,16 @@ func IsFlush(hand *Hand, evaluationMatrix *[5][14]int) bool {
 	for suit := 0; suit < 4; suit++ {
 		if evaluationMatrix[suit][13] == 5 {
 			hand.HandVal = Flush
-			assignAllCardsToTieBreaker(hand)
+			hand.TieBreakers[0] = hand.Cards[4].Rank
+			hand.TieBreakers[1] = hand.Cards[3].Rank
+			hand.TieBreakers[2] = hand.Cards[2].Rank
+			hand.TieBreakers[3] = hand.Cards[1].Rank
+			hand.TieBreakers[4] = hand.Cards[0].Rank
 			return true
 		}
 	}
 
 	return false
-}
-
-func assignAllCardsToTieBreaker(hand *Hand) {
-	arr := [13]int{0}
-	for _, card := range hand.Cards {
-		arr[card.Rank]++
-	}
-
-	count := 0
-	for i := range arr {
-		for arr[i] > 0 {
-			hand.TieBreakers[4-count] = Rank(i)
-			arr[i] -= 1
-			count++
-		}
-	}
 }
 
 func IsStraight(hand *Hand, evaluationMatrix *[5][14]int) bool {
@@ -135,12 +115,16 @@ func IsStraight(hand *Hand, evaluationMatrix *[5][14]int) bool {
 	// Check for "11111" in string
 	for i := 0; i <= len(s)-5; i++ {
 		if s[i:i+5] == "11111" {
+			hand.HandVal = Straight
+			if hand.Cards[0].Rank == Two && hand.Cards[4].Rank == Ace {
+				hand.TieBreakers[0] = hand.Cards[3].Rank
+			} else {
+				hand.TieBreakers[0] = hand.Cards[4].Rank
+			}
 			return true
 		}
 	}
 
-	hand.HandVal = Straight
-	hand.TieBreakers[0] = GetHighestRank(hand)
 	return false
 }
 
@@ -150,7 +134,11 @@ func IsFourOfAKind(hand *Hand, evaluationMatrix *[5][14]int) bool {
 		if evaluationMatrix[4][rank] == 4 {
 			hand.HandVal = FourOfAKind
 			hand.TieBreakers[0] = Rank(rank)
-			hand.TieBreakers[1] = getLoneRank(hand)
+			for _, card := range hand.Cards {
+				if card.Rank != Rank(rank) {
+					hand.TieBreakers[1] = card.Rank
+				}
+			}
 			return true
 		}
 	}
@@ -241,10 +229,20 @@ func IsOnePair(hand *Hand, evaluationMatrix *[5][14]int) bool {
 	if pairCount == 1 {
 		hand.HandVal = OnePair
 		hand.TieBreakers[0] = pairRank
-		assignLowestTwoLoneCardsInDescOrder(hand) // might be incorrect
+		assignAllButPairDesc(hand)
 		return true
 	} else {
 		return false
+	}
+}
+
+func assignAllButPairDesc(hand *Hand) {
+	count := 4
+	for _, card := range hand.Cards {
+		if card.Rank != hand.TieBreakers[0] { // if not pair
+			hand.TieBreakers[count] = card.Rank
+			count = count - 1
+		}
 	}
 }
 

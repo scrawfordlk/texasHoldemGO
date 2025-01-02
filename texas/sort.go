@@ -24,10 +24,9 @@ func (h HandList) Less(i, j int) bool {
 
 	// If hand values are the same, compare tie-breakers
 	for idx := 0; idx < len(h[i].TieBreakers) && idx < len(h[j].TieBreakers); idx++ {
-		print(fmt.Sprintf("Tiebreak: %v vs %v\n", h[i].TieBreakers[idx], h[j].TieBreakers[idx]))
-		if h[i].TieBreakers[idx] > h[j].TieBreakers[idx] {
+		if h[i].TieBreakers[idx] < h[j].TieBreakers[idx] {
 			return true
-		} else if h[i].TieBreakers[idx] < h[j].TieBreakers[idx] {
+		} else if h[i].TieBreakers[idx] > h[j].TieBreakers[idx] {
 			return false
 		}
 	}

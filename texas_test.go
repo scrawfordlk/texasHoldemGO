@@ -141,7 +141,7 @@ func TestHandComparisonUsingSortInterface(t *testing.T) {
 		{Cards: [5]Card{{Spades, Queen}, {Hearts, Ten}, {Spades, Queen}, {Diamonds, Ten}, {Clubs, Ten}}},
 
 		// Four of a Kind cases - correct
-		{Cards: [5]Card{{Hearts, Ten}, {Spades, Jack}, {Clubs, Ten}, {Diamonds, Ten}, {Hearts, King}}},
+		{Cards: [5]Card{{Hearts, Ten}, {Spades, Ten}, {Clubs, Ten}, {Diamonds, Ten}, {Hearts, King}}},
 		{Cards: [5]Card{{Clubs, Ten}, {Diamonds, Ten}, {Hearts, King}, {Hearts, Ten}, {Spades, Ten}}},
 		{Cards: [5]Card{{Spades, Five}, {Diamonds, Five}, {Clubs, Five}, {Hearts, Five}, {Hearts, Ace}}},
 		{Cards: [5]Card{{Spades, Five}, {Diamonds, Five}, {Clubs, Five}, {Hearts, Five}, {Hearts, Ace}}},
@@ -161,42 +161,49 @@ func TestHandComparisonUsingSortInterface(t *testing.T) {
 	}
 
 	expected := []string{
-		"hand 2 > hand 1",
+		"hand 2 > hand 1", // High Card
 		"hand 2 > hand 1",
 		"hand 1 > hand 2",
 		"hand 1 > hand 2",
 		"hand 1 = hand 2",
 		"hand 1 = hand 2",
 
-		"hand 1 > hand 2",
-		"hand 1 > hand 2",
-		"hand 1 = hand 2",
-		"hand 1 = hand 2",
-		"hand 2 > hand 1",
-		"hand 2 > hand 1",
-
-		"hand 1 = hand 2",
-		"hand 1 = hand 2",
-		"hand 1 > hand 2",
-		"hand 1 > hand 2",
-		"hand 2 > hand 1",
-		"hand 2 > hand 1",
-
-		"hand 1 > hand 2",
+		"hand 1 > hand 2", // One Pair
 		"hand 1 > hand 2",
 		"hand 1 = hand 2",
 		"hand 1 = hand 2",
 		"hand 2 > hand 1",
 		"hand 2 > hand 1",
 
+		"hand 1 = hand 2", // Two Pair
+		"hand 1 = hand 2",
 		"hand 1 > hand 2",
+		"hand 1 > hand 2",
+		"hand 2 > hand 1",
+		"hand 2 > hand 1",
+
+		"hand 1 > hand 2", // Three of a Kind
 		"hand 1 > hand 2",
 		"hand 1 = hand 2",
 		"hand 1 = hand 2",
 		"hand 2 > hand 1",
 		"hand 2 > hand 1",
 
+		"hand 1 > hand 2", // Straight
+		"hand 1 > hand 2",
+		"hand 1 = hand 2",
+		"hand 1 = hand 2",
 		"hand 2 > hand 1",
+		"hand 2 > hand 1",
+
+		"hand 1 > hand 2", // Flush
+		"hand 1 > hand 2",
+		"hand 1 = hand 2",
+		"hand 1 = hand 2",
+		"hand 2 > hand 1",
+		"hand 2 > hand 1",
+
+		"hand 2 > hand 1", // Full House
 		"hand 2 > hand 1",
 		"hand 1 = hand 2",
 		"hand 1 = hand 2",
@@ -207,20 +214,20 @@ func TestHandComparisonUsingSortInterface(t *testing.T) {
 		"hand 2 > hand 1",
 		"hand 1 = hand 2",
 		"hand 1 = hand 2",
-		"hand 1 > hand 2",
+		"hand 1 > hand 2", // Four of A Kind
 		"hand 1 > hand 2",
 
-		"hand 1 > hand 2",
+		"hand 1 > hand 2", // Straight Flush
 		"hand 1 > hand 2",
 		"hand 1 = hand 2",
 		"hand 1 = hand 2",
 		"hand 2 > hand 1",
 		"hand 2 > hand 1",
 
-		"hand 1 = hand 2",
+		"hand 1 = hand 2", // Royal Flush
 	}
 
-	tests := [49]struct {
+	tests := [55]struct {
 		hand1    Hand
 		hand2    Hand
 		expected string // "hand1 < hand2", "hand1 > hand2", or "hand1 == hand2"
@@ -235,8 +242,8 @@ func TestHandComparisonUsingSortInterface(t *testing.T) {
 
 	for _, test := range tests {
 		// Evaluate the hands
-		EvaluateFullHand(test.hand1)
-		EvaluateFullHand(test.hand2)
+		EvaluateFullHand(&test.hand1)
+		EvaluateFullHand(&test.hand2)
 
 		// Compare using Less
 		handList := HandList{test.hand1, test.hand2}
@@ -246,11 +253,11 @@ func TestHandComparisonUsingSortInterface(t *testing.T) {
 		// Determine the result
 		var result string
 		if hand1LessHand2 {
-			result = "hand1 < hand2"
+			result = "hand 2 > hand 1"
 		} else if hand2LessHand1 {
-			result = "hand1 > hand2"
+			result = "hand 1 > hand 2"
 		} else {
-			result = "hand1 == hand2"
+			result = "hand 1 = hand 2"
 		}
 
 		// Check the result
