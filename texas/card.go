@@ -39,5 +39,5 @@ type Card struct {
 type Hand struct {
 	Cards       [5]Card
 	HandVal     HandVal
-	TieBreakers []int
+	TieBreakers [10]Rank
 }

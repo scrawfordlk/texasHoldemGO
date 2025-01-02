@@ -7,8 +7,12 @@ func EvaluateFullHand(hand Hand) HandVal {
 	if IsFlush(hand, evaluationMatrix) && IsStraight(hand, evaluationMatrix) {
 		// If the hand is a straight flush, check for royal flush (Ace-high straight flush)
 		if evaluationMatrix[4][12] > 0 && evaluationMatrix[4][11] > 0 { // Ace present in the hand
+			hand.HandVal = RoyalFlush
 			return RoyalFlush
 		}
+
+		hand.HandVal = StraightFlush
+		hand.TieBreakers[0] = GetHighestRank(hand)
 		return StraightFlush
 	} else if IsFourOfAKind(hand, evaluationMatrix) {
 		return FourOfAKind
@@ -43,26 +47,60 @@ func EvaluateHand(hand Hand) [5][14]int {
 }
 
 func IsTwoPair(hand Hand, evaluationMatrix [5][14]int) bool {
+	twoPairs := [2]Rank{Two}
 	// Check sums of ranks in the extra row
 	pairCount := 0
 	for rank := 0; rank < 13; rank++ {
 		if evaluationMatrix[4][rank] >= 2 {
+			twoPairs[pairCount] = Rank(rank)
 			pairCount++
 		}
 	}
 
 	// If there are at least two pairs, return true
-	return pairCount >= 2
+	if pairCount >= 2 {
+		hand.HandVal = TwoPair
+		if twoPairs[0] > twoPairs[1] {
+			hand.TieBreakers[0] = twoPairs[0]
+			hand.TieBreakers[1] = twoPairs[1]
+		} else {
+			hand.TieBreakers[0] = twoPairs[1]
+			hand.TieBreakers[1] = twoPairs[0]
+		}
+
+		hand.TieBreakers[2] = getLoneRank(hand)
+		return true
+	} else {
+		return false
+	}
 }
 
 func IsFlush(hand Hand, evaluationMatrix [5][14]int) bool {
 	for suit := 0; suit < 4; suit++ {
 		if evaluationMatrix[suit][13] == 5 {
+			hand.HandVal = Flush
+			assignAllCardsToTieBreaker(hand)
 			return true
 		}
 	}
 
 	return false
+}
+
+func assignAllCardsToTieBreaker(hand Hand) {
+	arr := [13]int{0}
+	for _, card := range hand.Cards {
+		arr[card.Rank]++
+	}
+
+	count := 0
+	for i := range arr {
+		for arr[i] > 0 {
+			hand.TieBreakers[4-count] = Rank(i)
+			arr[i] -= 1
+			count++
+		}
+	}
 }
 
 func IsStraight(hand Hand, evaluationMatrix [5][14]int) bool {
@@ -87,6 +125,8 @@ func IsStraight(hand Hand, evaluationMatrix [5][14]int) bool {
 		}
 	}
 
+	hand.HandVal = Straight
+	hand.TieBreakers[0] = GetHighestRank(hand)
 	return false
 }
 
@@ -94,10 +134,28 @@ func IsFourOfAKind(hand Hand, evaluationMatrix [5][14]int) bool {
 	// Check the rank row (4th row) for a count of 4
 	for rank := 0; rank < 13; rank++ {
 		if evaluationMatrix[4][rank] == 4 {
+			hand.HandVal = FourOfAKind
+			hand.TieBreakers[0] = Rank(rank)
+			hand.TieBreakers[1] = getLoneRank(hand)
 			return true
 		}
 	}
 	return false
+}
+
+func getLoneRank(hand Hand) Rank {
+	arr := [13]int{0}
+	for _, card := range hand.Cards {
+		arr[card.Rank]++
+	}
+
+	for i := range arr {
+		if arr[i] == 1 {
+			return Rank(i)
+		}
+	}
+
+	return Ace
 }
 
 func IsFullHouse(hand Hand, evaluationMatrix [5][14]int) bool {
@@ -118,28 +176,89 @@ func IsFullHouse(hand Hand, evaluationMatrix [5][14]int) bool {
 	}
 
 	// A full house needs both a three of a kind and a pair
-	return hasThree && hasPair
+	if hasThree && hasPair {
+		hand.HandVal = FullHouse
+		hand.TieBreakers[0] = tripleRank
+		hand.TieBreakers[1] = pairRank
+		return true
+	} else {
+		return false
+	}
 }
 
 func IsThreeOfAKind(hand Hand, evaluationMatrix [5][14]int) bool {
 	// Check the rank row (4th row) for a count of 3
 	for rank := 0; rank < 13; rank++ {
 		if evaluationMatrix[4][rank] == 3 {
+			hand.HandVal = ThreeOfAKind
+			hand.TieBreakers[0] = Rank(rank)
+			assignLowestTwoLoneCardsInDescOrder(hand)
 			return true
 		}
 	}
 	return false
 }
 
+func assignLowestTwoLoneCardsInDescOrder(hand Hand) {
+	arr := [13]int{0}
+	for _, card := range hand.Cards {
+		arr[card.Rank]++
+	}
+
+	count := 0
+	for i := range arr {
+		if arr[i] == 1 {
+			hand.TieBreakers[2-count] = Rank(i)
+		}
+	}
+}
+
 func IsOnePair(hand Hand, evaluationMatrix [5][14]int) bool {
 	// Check the rank row (4th row) for a count of 2
+	pairRank := Two
 	pairCount := 0
 	for rank := 0; rank < 13; rank++ {
 		if evaluationMatrix[4][rank] == 2 {
+			pairRank = Rank(rank)
 			pairCount++
 		}
 	}
 
-	// A hand with exactly one pair
-	return pairCount == 1
+	if pairCount == 1 {
+		hand.HandVal = OnePair
+		hand.TieBreakers[0] = pairRank
+		assignLowestTwoLoneCardsInDescOrder(hand) // might be incorrect
+		return true
+	} else {
+		return false
+	}
+}
+
+func GetHighestRank(hand Hand) Rank {
+	rank := Two
+	for _, card := range hand.Cards {
+		if card.Rank > rank {
+			rank = card.Rank
+		}
+	}
+
+	hand.TieBreakers[0] = rank
+	assignRest(hand)
+
+	return rank
+}
+
+func assignRest(hand Hand) {
+	arr := [13]int{0}
+	for _, card := range hand.Cards {
+		arr[card.Rank]++
+	}
+
+	count := 0
+	for i := range arr {
+		if arr[12-i] == 1 {
+			hand.TieBreakers[1+count] = Rank(i)
+			count++
+		}
+	}
 }
