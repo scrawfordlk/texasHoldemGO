@@ -4,25 +4,25 @@ package texas
 func EvaluateFullHand(hand Hand) HandVal {
 	evaluationMatrix := EvaluateHand(hand)
 
-	if IsFlush(evaluationMatrix) && IsStraight(evaluationMatrix) {
+	if IsFlush(hand, evaluationMatrix) && IsStraight(hand, evaluationMatrix) {
 		// If the hand is a straight flush, check for royal flush (Ace-high straight flush)
-		if evaluationMatrix[4][12] > 0 { // Ace present in the hand
+		if evaluationMatrix[4][12] > 0 && evaluationMatrix[4][11] > 0 { // Ace present in the hand
 			return RoyalFlush
 		}
 		return StraightFlush
-	} else if IsFourOfAKind(evaluationMatrix) {
+	} else if IsFourOfAKind(hand, evaluationMatrix) {
 		return FourOfAKind
-	} else if IsFullHouse(evaluationMatrix) {
+	} else if IsFullHouse(hand, evaluationMatrix) {
 		return FullHouse
-	} else if IsFlush(evaluationMatrix) {
+	} else if IsFlush(hand, evaluationMatrix) {
 		return Flush
-	} else if IsStraight(evaluationMatrix) {
+	} else if IsStraight(hand, evaluationMatrix) {
 		return Straight
-	} else if IsThreeOfAKind(evaluationMatrix) {
+	} else if IsThreeOfAKind(hand, evaluationMatrix) {
 		return ThreeOfAKind
-	} else if IsTwoPair(evaluationMatrix) {
+	} else if IsTwoPair(hand, evaluationMatrix) {
 		return TwoPair
-	} else if IsOnePair(evaluationMatrix) {
+	} else if IsOnePair(hand, evaluationMatrix) {
 		return OnePair
 	} else {
 		return HighCard
@@ -42,7 +42,7 @@ func EvaluateHand(hand Hand) [5][14]int {
 	return EvaluationMatrix
 }
 
-func IsTwoPair(evaluationMatrix [5][14]int) bool {
+func IsTwoPair(hand Hand, evaluationMatrix [5][14]int) bool {
 	// Check sums of ranks in the extra row
 	pairCount := 0
 	for rank := 0; rank < 13; rank++ {
@@ -55,7 +55,7 @@ func IsTwoPair(evaluationMatrix [5][14]int) bool {
 	return pairCount >= 2
 }
 
-func IsFlush(evaluationMatrix [5][14]int) bool {
+func IsFlush(hand Hand, evaluationMatrix [5][14]int) bool {
 	for suit := 0; suit < 4; suit++ {
 		if evaluationMatrix[suit][13] == 5 {
 			return true
@@ -65,7 +65,7 @@ func IsFlush(evaluationMatrix [5][14]int) bool {
 	return false
 }
 
-func IsStraight(evaluationMatrix [5][14]int) bool {
+func IsStraight(hand Hand, evaluationMatrix [5][14]int) bool {
 	s := ""
 
 	// Build a binary representation of ranks
@@ -90,7 +90,7 @@ func IsStraight(evaluationMatrix [5][14]int) bool {
 	return false
 }
 
-func IsFourOfAKind(evaluationMatrix [5][14]int) bool {
+func IsFourOfAKind(hand Hand, evaluationMatrix [5][14]int) bool {
 	// Check the rank row (4th row) for a count of 4
 	for rank := 0; rank < 13; rank++ {
 		if evaluationMatrix[4][rank] == 4 {
@@ -100,16 +100,20 @@ func IsFourOfAKind(evaluationMatrix [5][14]int) bool {
 	return false
 }
 
-func IsFullHouse(evaluationMatrix [5][14]int) bool {
+func IsFullHouse(hand Hand, evaluationMatrix [5][14]int) bool {
 	hasThree := false
 	hasPair := false
+	tripleRank := Ace
+	pairRank := Ace
 
 	// Check the rank row (4th row) for a count of 3 or 2
 	for rank := 0; rank < 13; rank++ {
 		if evaluationMatrix[4][rank] == 3 {
 			hasThree = true
+			tripleRank = Rank(rank)
 		} else if evaluationMatrix[4][rank] == 2 {
 			hasPair = true
+			pairRank = Rank(pairRank)
 		}
 	}
 
@@ -117,7 +121,7 @@ func IsFullHouse(evaluationMatrix [5][14]int) bool {
 	return hasThree && hasPair
 }
 
-func IsThreeOfAKind(evaluationMatrix [5][14]int) bool {
+func IsThreeOfAKind(hand Hand, evaluationMatrix [5][14]int) bool {
 	// Check the rank row (4th row) for a count of 3
 	for rank := 0; rank < 13; rank++ {
 		if evaluationMatrix[4][rank] == 3 {
@@ -127,7 +131,7 @@ func IsThreeOfAKind(evaluationMatrix [5][14]int) bool {
 	return false
 }
 
-func IsOnePair(evaluationMatrix [5][14]int) bool {
+func IsOnePair(hand Hand, evaluationMatrix [5][14]int) bool {
 	// Check the rank row (4th row) for a count of 2
 	pairCount := 0
 	for rank := 0; rank < 13; rank++ {

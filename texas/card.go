@@ -37,5 +37,7 @@ type Card struct {
 
 // Define the Hand struct which contains 5 cards
 type Hand struct {
-	Cards [5]Card
+	Cards       [5]Card
+	HandVal     HandVal
+	TieBreakers []int
 }
