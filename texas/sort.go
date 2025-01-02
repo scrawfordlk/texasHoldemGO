@@ -14,7 +14,7 @@ func (h HandList) Len() int {
 
 func (h HandList) Less(i, j int) bool {
 	for _, hand := range h {
-		hand.HandVal = EvaluateFullHand(hand)
+		hand.HandVal = EvaluateFullHand(&hand)
 	}
 
 	// Compare hand values first
@@ -24,6 +24,7 @@ func (h HandList) Less(i, j int) bool {
 
 	// If hand values are the same, compare tie-breakers
 	for idx := 0; idx < len(h[i].TieBreakers) && idx < len(h[j].TieBreakers); idx++ {
+		print(fmt.Sprintf("Tiebreak: %v vs %v\n", h[i].TieBreakers[idx], h[j].TieBreakers[idx]))
 		if h[i].TieBreakers[idx] > h[j].TieBreakers[idx] {
 			return true
 		} else if h[i].TieBreakers[idx] < h[j].TieBreakers[idx] {
@@ -99,4 +100,16 @@ func (h Hand) String() string {
 		result += fmt.Sprintf("%v-%v ", card.Suit, card.Rank)
 	}
 	return result
+}
+
+// Sorting function for cards (sort by Rank, then Suit)
+func (h *Hand) SortCards() {
+	sort.Slice(h.Cards[:], func(i, j int) bool {
+		// First sort by Rank
+		if h.Cards[i].Rank != h.Cards[j].Rank {
+			return h.Cards[i].Rank < h.Cards[j].Rank
+		}
+		// If ranks are equal, sort by Suit
+		return h.Cards[i].Suit < h.Cards[j].Suit
+	})
 }
